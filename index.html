@@ -3,6 +3,7 @@
 <head>
 
 <meta charset="UTF-8">
+
 <title>Stock Prediction Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,12 +14,11 @@ body{
 font-family:Arial;
 background:#0f172a;
 color:white;
-padding:25px;
+padding:30px;
 }
 
 h1{
 text-align:center;
-margin-bottom:30px;
 }
 
 table{
@@ -28,8 +28,8 @@ margin-bottom:40px;
 }
 
 th,td{
+padding:12px;
 border:1px solid #334155;
-padding:10px;
 text-align:center;
 }
 
@@ -41,13 +41,6 @@ background:#1e293b;
 .sell{color:#ef4444;font-weight:bold}
 .hold{color:#facc15;font-weight:bold}
 
-.card{
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-margin-bottom:30px;
-}
-
 </style>
 
 </head>
@@ -55,8 +48,6 @@ margin-bottom:30px;
 <body>
 
 <h1>📈 Stock Prediction Dashboard</h1>
-
-<div class="card">
 
 <table id="summary">
 
@@ -77,11 +68,7 @@ margin-bottom:30px;
 
 </table>
 
-</div>
-
-<div class="card">
-<canvas id="priceChart"></canvas>
-</div>
+<canvas id="chart"></canvas>
 
 <script>
 
@@ -89,11 +76,13 @@ const apiURL="https://script.google.com/macros/s/AKfycbwdlxa5SUiIXSy9y3BPalV1TrO
 
 async function loadData(){
 
-const res=await fetch(apiURL)
+const response=await fetch(apiURL)
 
-const data=await res.json()
+const data=await response.json()
 
 const table=document.querySelector("#summary tbody")
+
+table.innerHTML=""
 
 let prices=[]
 let predictions=[]
@@ -104,19 +93,21 @@ data.forEach(row=>{
 let close=parseFloat(row.Close)
 let predicted=parseFloat(row.PredictedPrice)
 
+if(!close || !predicted) return
+
 let change=((predicted-close)/close*100).toFixed(2)
 
 let signal="HOLD"
-let signalClass="hold"
+let color="hold"
 
 if(change>3){
 signal="BUY"
-signalClass="buy"
+color="buy"
 }
 
 if(change<-3){
 signal="SELL"
-signalClass="sell"
+color="sell"
 }
 
 let tr=document.createElement("tr")
@@ -127,7 +118,7 @@ tr.innerHTML=`
 <td>${predicted}</td>
 <td>${change}%</td>
 <td>${row.Confidence}</td>
-<td class="${signalClass}">${signal}</td>
+<td class="${color}">${signal}</td>
 `
 
 table.appendChild(tr)
@@ -138,38 +129,33 @@ predictions.push(predicted)
 
 })
 
-drawChart(dates,prices,predictions)
+createChart(dates,prices,predictions)
 
 }
 
-function drawChart(dates,prices,predictions){
+function createChart(dates,prices,predictions){
 
-new Chart(document.getElementById("priceChart"),{
+new Chart(document.getElementById("chart"),{
 
-type:'line',
+type:"line",
 
 data:{
 labels:dates,
-
 datasets:[
-
 {
 label:"Historical Price",
 data:prices,
 borderColor:"#38bdf8",
-backgroundColor:"transparent"
+fill:false
 },
-
 {
 label:"Predicted Price",
 data:predictions,
 borderColor:"#22c55e",
 borderDash:[6,6],
-backgroundColor:"transparent"
+fill:false
 }
-
 ]
-
 }
 
 })
@@ -181,5 +167,4 @@ loadData()
 </script>
 
 </body>
-
 </html>
