@@ -1,171 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
 <meta charset="UTF-8">
-
-<title>Stock Prediction </title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-padding:30px;
-}
-
-h1{
-text-align:center;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-bottom:40px;
-}
-
-th,td{
-padding:12px;
-border:1px solid #334155;
-text-align:center;
-}
-
-th{
-background:#1e293b;
-}
-
-.buy{color:#22c55e;font-weight:bold}
-.sell{color:#ef4444;font-weight:bold}
-.hold{color:#facc15;font-weight:bold}
-
-</style>
-
+<title>Thesis Information Chatbot</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>📈 Stock Prediction Dashboard</h1>
+<div class="chat-container">
+<h2>Thesis Information Chatbot</h2>
 
-<table id="summary">
+<div id="chat"></div>
 
-<thead>
+<div class="input-area">
+<input id="userInput" placeholder="Ask about the thesis..." />
+<button onclick="sendMessage()">Send</button>
+</div>
 
-<tr>
-<th>Ticker</th>
-<th>Last Price</th>
-<th>Predicted Price</th>
-<th>Change %</th>
-<th>Confidence</th>
-<th>Signal</th>
-</tr>
+</div>
 
-</thead>
-
-<tbody></tbody>
-
-</table>
-
-<canvas id="chart"></canvas>
-
-<script>
-
-const apiURL="https://script.google.com/macros/s/AKfycbwdlxa5SUiIXSy9y3BPalV1TrOFTKr9foUyOgNdF8qVAp3OZnFSxA39scbGbHYyTmAM/exec"
-
-async function loadData(){
-
-const response=await fetch(apiURL)
-
-const data=await response.json()
-
-const table=document.querySelector("#summary tbody")
-
-table.innerHTML=""
-
-let prices=[]
-let predictions=[]
-let dates=[]
-
-data.forEach(row=>{
-
-let close=parseFloat(row.Close)
-let predicted=parseFloat(row.PredictedPrice)
-
-if(!close || !predicted) return
-
-let change=((predicted-close)/close*100).toFixed(2)
-
-let signal="HOLD"
-let color="hold"
-
-if(change>3){
-signal="BUY"
-color="buy"
-}
-
-if(change<-3){
-signal="SELL"
-color="sell"
-}
-
-let tr=document.createElement("tr")
-
-tr.innerHTML=`
-<td>${row.Ticker}</td>
-<td>${close}</td>
-<td>${predicted}</td>
-<td>${change}%</td>
-<td>${row.Confidence}</td>
-<td class="${color}">${signal}</td>
-`
-
-table.appendChild(tr)
-
-dates.push(row.Date)
-prices.push(close)
-predictions.push(predicted)
-
-})
-
-createChart(dates,prices,predictions)
-
-}
-
-function createChart(dates,prices,predictions){
-
-new Chart(document.getElementById("chart"),{
-
-type:"line",
-
-data:{
-labels:dates,
-datasets:[
-{
-label:"Historical Price",
-data:prices,
-borderColor:"#38bdf8",
-fill:false
-},
-{
-label:"Predicted Price",
-data:predictions,
-borderColor:"#22c55e",
-borderDash:[6,6],
-fill:false
-}
-]
-}
-
-})
-
-}
-
-loadData()
-
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
-
