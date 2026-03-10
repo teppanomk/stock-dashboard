@@ -1,6 +1,6 @@
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSfUYEYX8MIGIYW5hTWf2hz_j0VT7TBiZlAWkB183PuT25msmPFtizLvmD9ktXgV4aMj2e8E6IACs6U/pub?gid=0&single=true&output=csv";
 
-const API_KEY = "YOUR_GEMINI_API_KEY";
+const API_KEY = "AIzaSyDActonX6RSYaUXnJOU2t5TpsjePulhZNc";
 
 let knowledgeBase = "";
 
