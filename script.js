@@ -1,100 +1,103 @@
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSfUYEYX8MIGIYW5hTWf2hz_j0VT7TBiZlAWkB183PuT25msmPFtizLvmD9ktXgV4aMj2e8E6IACs6U/pub?gid=0&single=true&output=csv";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSfUYEYX8MIGIYW5hTWf2hz_j0VT7TBiZlAWkB183PuT25msmPFtizLvmD9ktXgV4aMj2e8E6IACs6U/pub?gid=0&single=true&output=csv";
 
-const API_KEY = "AIzaSyDActonX6RSYaUXnJOU2t5TpsjePulhZNc";
+const API_KEY = "YOUR_GEMINI_API_KEY";
 
 let knowledgeBase = "";
-let loaded = false;
 
-async function loadSheetData() {
+async function loadSheet() {
 
-    const res = await fetch(sheetURL);
+    const res = await fetch(SHEET_URL);
     const csv = await res.text();
 
-    const rows = csv.split("\n").slice(1);
+    const rows = csv.split("\n");
 
-    knowledgeBase = rows.map(row => {
+    for (let i = 1; i < rows.length; i++) {
 
-        const firstComma = row.indexOf(",");
+        const cols = rows[i].split(",");
 
-        if (firstComma === -1) return "";
+        if (cols.length >= 2) {
 
-        const topic = row.substring(0, firstComma);
-        const content = row.substring(firstComma + 1);
+            const topic = cols[0];
+            const content = cols.slice(1).join(",");
 
-        return `Topic: ${topic}\nContent: ${content}`;
+            knowledgeBase += `Topic: ${topic}\nContent: ${content}\n\n`;
+        }
+    }
 
-    }).join("\n\n");
-
-    loaded = true;
-
-    console.log("Knowledge loaded:", knowledgeBase);
+    console.log("Sheet loaded");
 }
 
-function addMessage(text, sender) {
+function addMessage(text, sender){
 
     const chat = document.getElementById("chat");
 
-    const msg = document.createElement("div");
-    msg.className = "message " + sender;
+    const div = document.createElement("div");
 
-    msg.innerText = text;
+    div.className = sender;
 
-    chat.appendChild(msg);
+    div.innerText = text;
+
+    chat.appendChild(div);
+
     chat.scrollTop = chat.scrollHeight;
 }
 
-async function sendMessage() {
-
-    if (!loaded) {
-        addMessage("Loading thesis knowledge... please wait.", "bot");
-        return;
-    }
+async function sendMessage(){
 
     const input = document.getElementById("userInput");
-    const question = input.value.trim();
 
-    if (!question) return;
+    const question = input.value;
 
-    addMessage(question, "user");
-    input.value = "";
+    if(!question) return;
+
+    addMessage(question,"user");
+
+    input.value="";
 
     const prompt = `
-You are a thesis assistant chatbot.
+You are a thesis assistant.
 
-Answer ONLY using the knowledge below.
-If the answer is not found, say "This information is not available in the thesis database."
+Answer using ONLY the knowledge below.
 
-Knowledge:
 ${knowledgeBase}
 
-Question:
-${question}
+Question: ${question}
 `;
 
-    const response = await fetch(
+    try{
+
+        const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
         {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
             },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }]
+            body:JSON.stringify({
+                contents:[
+                    {
+                        parts:[
+                            {text: prompt}
+                        ]
+                    }
+                ]
             })
-        }
-    );
+        });
 
-    const data = await response.json();
+        const data = await res.json();
 
-    console.log(data);
+        console.log(data);
 
-    const reply =
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "Sorry, I couldn't find an answer.";
+        const reply = data.candidates[0].content.parts[0].text;
 
-    addMessage(reply, "bot");
+        addMessage(reply,"bot");
+
+    }catch(err){
+
+        console.error(err);
+
+        addMessage("Error connecting to AI.","bot");
+    }
 }
 
-loadSheetData();
+loadSheet();
